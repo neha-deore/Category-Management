@@ -18,21 +18,6 @@ export const getAllCategories = async (req, res) => {
   }
 };
 
-export const getAllSubCategories = async (req, res) => {
-  try {
-    const subcategory = await subCategoryModel.find();
-    res.status(202).json({
-      succes: true,
-      subcategory,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
 export const addCategory = async (req, res) => {
   try {
     const { categoryName } = req.body;
@@ -83,10 +68,11 @@ export const subCategory = async (req, res) => {
 
 export const deleteSubCategory = async (req, res) => {
   try {
+  
     const subcate = await subCategoryModel.findOneAndDelete({
       _id: req.body.categoryId,
     });
-    const cat = await categoryModel.findOneAndUpdate(
+    const cat = await categoryModel.updateOne(
       { _id: subcate.category },
       { $pullAll: { subCategory: [req.body.categoryId] } }
     );
@@ -123,7 +109,6 @@ export const sendImages = async (req, res) => {
   for (const file of req.files) {
     imagePaths.push(file.filename);
   }
-  console.log(req.files);
   try {
     const productImage = await productModel.create({
       
@@ -136,10 +121,10 @@ export const sendImages = async (req, res) => {
 
     const subcatego = await subCategoryModel.findById(req.body.subCategoryId);
     subcatego.products.push(productImage._id);
-    subcatego.save();
-
-    const prodDetails = await subCategoryModel.find().populate("products");
-
+   await subcatego.save();
+   
+  const prodDetails = await subCategoryModel.findById(req.body.subCategoryId).populate("products");
+console.log(prodDetails)
     res.status(202).json({
       success: true,
       prodDetails,
@@ -153,3 +138,75 @@ export const sendImages = async (req, res) => {
     });
   }
 };
+
+export const deleteProduct=async (req,res) =>{
+  console.log(req.body.product_id,"line 158")
+  try {
+  
+    const productdetails = await productModel.findOneAndDelete({
+      _id:req.body.product_id,
+    });
+    console.log(productdetails.subCategory,"line164")
+    
+    const subcatedelete=await subCategoryModel.findOneAndUpdate(
+      {_id:productdetails.subCategory},
+      {$pullAll:{products:[req.body.product_id]}}
+    );
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+    
+  }
+}
+
+export const  getAllProduct =async(req,res)=>{
+  const {_id}=req.body
+  try {
+    
+    const prodDetails = await subCategoryModel.findById(_id).populate("products")
+    
+    res.status(202).json({
+      success: true,
+      prodDetails,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+export const updateproducts = async(req,res)=>{
+  try {
+    console.log(req.body, "line 200")
+    const prod = await productModel.findById(req.body.id)
+
+    const {product_name, product_cost, product_desc} = req.body
+
+    if(product_name){
+      prod.product_name = product_name
+    }
+
+    if(product_cost){
+      prod.product_cost = product_cost
+    }
+
+    if(product_desc){
+      prod.product_desc = product_desc
+    }
+
+    await prod.save();
+
+    res.status(200).json({success: true, message:"Product Updated"})
+  } 
+  catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
