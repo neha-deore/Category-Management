@@ -7,9 +7,10 @@ export function addnewCategory(data) {
 export function getAllCategories() {
     return axios.get(`${MAIN_URL}products/getAllCategories`)
 }
-export function getAllSubCategories() {
-    return axios.get(`${MAIN_URL}products/getAllSubCategories`)
+export function getAllProduct(data) {
+    return axios.post(`${MAIN_URL}products/getAllProduct/`,data)
 }
+
 export function subCategory(data) {
     return axios.post(`${MAIN_URL}products/subCategory`, data)
 }
@@ -29,4 +30,12 @@ export function sendImages(data) {
             'content-type': 'multipart/form-data'
         }
     });
+}
+
+export function deleteProduct(data) {
+    return axios.post(`${MAIN_URL}products/deleteProduct`, data)
+}
+
+export function updateprod(data) {
+    return axios.post(`${MAIN_URL}products/updateProd`, data)
 }
